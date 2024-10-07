@@ -1,0 +1,15 @@
+---
+- name: Créer un utilisateur et un groupe
+  hosts: my_servers
+  become: true
+  tasks:
+    - name: Créer un groupe
+      ansible.builtin.group:
+        name: mygroup
+        state: present
+
+    - name: Créer un utilisateur
+      ansible.builtin.user:
+        name: myuser
+        group: mygroup
+        state: present

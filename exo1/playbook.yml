@@ -1,0 +1,12 @@
+---
+- name: Check uname command on remote host
+  hosts: my_servers
+  tasks:
+    - name: Execute uname -a
+      ansible.builtin.command: uname -a
+      register: uname_output
+      changed_when: uname_output.rc != 0
+
+    - name: Display uname output
+      ansible.builtin.debug:
+        var: uname_output.stdout

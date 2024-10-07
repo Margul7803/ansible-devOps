@@ -1,0 +1,14 @@
+---
+- name: Installer Apache sur plusieurs hôtes
+  hosts: "{{ my_hosts | default([]) }}"
+  become: true
+  tasks:
+    - name: Installer Apache
+      ansible.builtin.apt:
+        name: apache2
+        state: present
+        update_cache: true
+      loop:
+        - host1
+        - host2
+        - host3

@@ -1,0 +1,75 @@
+---
+- name: Déploiement d'une application Flask "Hello World"
+  hosts: my_servers
+  become: true
+  vars:
+    app_directory: /opt/flask_app
+    python_packages:
+      - python3
+      - python3-pip
+      - python3.11-venv
+    flask_port: 5000
+    flask_file: "./app/hello.py"
+
+  tasks:
+    - name: Mise à jour des paquets APT
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Installer les dépendances Python
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ python_packages }}"
+      register: package_install
+
+    - name: Vérification de l'installation des paquets
+      ansible.builtin.debug:
+        msg: "Le paquet {{ item.item }} est installé avec le résultat: {{ item }}"
+      loop: "{{ package_install.results }}"
+
+    - name: Créer un environnement virtuel (venv)
+      ansible.builtin.shell: |
+        python3 -m venv {{ app_directory }}/venv
+      args:
+        creates: "{{ app_directory }}/venv/bin/activate"
+
+    - name: Installer Flask via pip
+      ansible.builtin.pip:
+        name: flask
+        state: present
+        virtualenv: "{{ app_directory }}/venv"
+
+    - name: Créer le répertoire pour l'application Flask
+      ansible.builtin.file:
+        path: "{{ app_directory }}"
+        state: directory
+        mode: "0755"
+
+    - name: Copier hello.py
+      ansible.builtin.copy:
+        src: "{{ flask_file }}"
+        dest: "{{ app_directory }}/hello.py"
+        mode: "0755"
+
+    - name: Exécuter l'application Flask
+      ansible.builtin.shell: |
+        source {{ app_directory }}/venv/bin/activate
+        nohup flask --app {{ app_directory }}/hello.py run > /dev/null 2>&1 &
+      register: flask_status
+      changed_when: flask_status.rc != 0
+      args:
+        executable: /bin/bash
+
+    - name: Vérifier si l'application Flask fonctionne
+      ansible.builtin.uri:
+        url: http://localhost:{{ flask_port }}
+        return_content: true
+      register: flask_app_status
+      until: flask_app_status.status == 200
+      retries: 5
+      delay: 5
+
+    - name: Afficher le statut de l'application
+      ansible.builtin.debug:
+        msg: "L'application Flask est accessible avec le message : {{ flask_app_status.content }}"

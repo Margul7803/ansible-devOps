@@ -1,5 +1,5 @@
 ---
-- name: Check uname command on remote host
+- name: Verifie la commande uname
   hosts: my_servers
   tasks:
     - name: Execute uname -a
@@ -7,6 +7,6 @@
       register: uname_output
       changed_when: uname_output.rc != 0
 
-    - name: Display uname output
+    - name: Affiche le résultat uname
       ansible.builtin.debug:
         var: uname_output.stdout

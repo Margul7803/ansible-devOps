@@ -1,0 +1,25 @@
+---
+- name: Déployer une application sur un hôte cible
+  hosts: my_servers
+  become: true
+  vars:
+    repo: https://github.com/Sysnove/flask-hello-world.git
+    app_path: /opt/your-app
+  tasks:
+    - name: Vérifier et installer git
+      ansible.builtin.package:
+        name: git
+        state: present
+      register: git_check
+
+    - name: Vérifier et installer Python3
+      ansible.builtin.package:
+        name: python3
+        state: present
+      register: python_check
+
+    - name: Clone l'application
+      ansible.builtin.git:
+        repo: "{{ repo }}"
+        dest: /opt/your-app
+        version: master

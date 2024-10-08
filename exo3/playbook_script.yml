@@ -1,0 +1,43 @@
+---
+- name: Exécuter un script shell et envoyer un rapport par e-mail
+  hosts: my_servers
+  become: true
+  vars:
+    script_path: ./script.sh
+    report_path: ./script_report.txt
+    permissions: "0600"
+    recipient_email: admin@example.com
+    email_subject: Rapport d'exécution du script
+    email_body: Le rapport d'exécution du script est en pièce jointe.
+  tasks:
+    - name: Copier le script sur l'hôte cible
+      ansible.builtin.copy:
+        src: "{{ script_path }}"
+        dest: "{{ script_path }}"
+        mode: "0755"
+
+    - name: Exécuter le script shell
+      ansible.builtin.command: "{{ script_path }}"
+      register: script_output
+      changed_when: script_output.rc != 0
+      ignore_errors: true
+
+    - name: Générer un rapport d'exécution
+      ansible.builtin.copy:
+        content: |
+          Rapport d'exécution du script:
+
+          Commande exécutée: {{ script_path }}
+          Code de retour: {{ script_output.rc }}
+
+          Sortie:
+          {{ script_output.stdout }}
+
+          Erreurs:
+          {{ script_output.stderr }}
+        dest: "{{ report_path }}"
+        mode: "{{ permissions }}"
+
+    - name: Simuler l'envoi d'un e-mail (action fictive)
+      ansible.builtin.debug:
+        msg: E-mail simulé envoyé à {{ recipient_email }} avec succès.

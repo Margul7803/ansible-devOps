@@ -1,6 +1,6 @@
 ---
 - name: Installer Apache sur plusieurs hôtes
-  hosts: "{{ my_servers | default([]) }}"
+  hosts: "my_servers"
   become: true
   tasks:
     - name: Installer Apache
